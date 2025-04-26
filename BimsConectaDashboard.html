@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="30">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bims Conecta - Tablero de Pendientes</title>
+    <style>
+        body {
+            background-color: #0b0c10;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+        img.logo {
+            width: 200px;
+            margin-top: 20px;
+        }
+        h1 {
+            margin: 10px 0;
+            font-size: 2em;
+            color: #66fcf1;
+        }
+        .container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin: 20px;
+        }
+        .column {
+            width: 22%;
+            background-color: #1f2833;
+            padding: 10px;
+            border-radius: 8px;
+            min-height: 400px;
+        }
+        .column h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        .rojo { color: #ff3b3f; }
+        .amarillo { color: #f5c518; }
+        .verde { color: #28a745; }
+        .azul { color: #17a2b8; }
+        .tarea {
+            background-color: #0b0c10;
+            margin: 8px 0;
+            padding: 8px;
+            border: 1px solid #333;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <img src="https://i.ibb.co/6WfFjW9/FONDO-NEGRO.png" alt="Bims Conecta Logo" class="logo">
+    <h1>Tablero de Pendientes</h1>
+    <div class="container">
+        <div class="column">
+            <h2 class="rojo">🔴 Urgente</h2>
+            <div id="rojo"></div>
+        </div>
+        <div class="column">
+            <h2 class="amarillo">🟡 Importante</h2>
+            <div id="amarillo"></div>
+        </div>
+        <div class="column">
+            <h2 class="verde">🟢 Pendiente</h2>
+            <div id="verde"></div>
+        </div>
+        <div class="column">
+            <h2 class="azul">🔵 Informativo</h2>
+            <div id="azul"></div>
+        </div>
+    </div>
+
+<script>
+    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpBlXxFSvypCMcH8ZyPe7Fead_RWveQTbuFg8lB4kKiJDSulg5EwAZfp6ERU0wjbqg-cj15oHQYOy-/pub?output=csv";
+
+    async function cargarDatos() {
+        const response = await fetch(sheetURL);
+        const data = await response.text();
+        const rows = data.split("\n").slice(1);
+
+        const rojoDiv = document.getElementById("rojo");
+        const amarilloDiv = document.getElementById("amarillo");
+        const verdeDiv = document.getElementById("verde");
+        const azulDiv = document.getElementById("azul");
+
+        rojoDiv.innerHTML = "";
+        amarilloDiv.innerHTML = "";
+        verdeDiv.innerHTML = "";
+        azulDiv.innerHTML = "";
+
+        const hoy = new Date();
+
+        rows.forEach(row => {
+            const cols = row.split(",");
+            const fecha = new Date(cols[0]);
+            const mensaje = cols[1];
+            const urgencia = cols[2].trim();
+            const estado = cols[3].trim();
+
+            if (estado === "Resuelto") {
+                const diffDays = (hoy - fecha) / (1000 * 60 * 60 * 24);
+                if (diffDays > 2) return;
+            }
+
+            let tareaHTML = `<div class="tarea">${mensaje}</div>`;
+
+            if (urgencia === "Rojo") rojoDiv.innerHTML += tareaHTML;
+            else if (urgencia === "Amarillo") amarilloDiv.innerHTML += tareaHTML;
+            else if (urgencia === "Verde") verdeDiv.innerHTML += tareaHTML;
+            else azulDiv.innerHTML += tareaHTML;
+        });
+    }
+
+    cargarDatos();
+    setInterval(cargarDatos, 30000);
+</script>
+</body>
+</html>
