@@ -98,7 +98,7 @@
     async function cargarDatos() {
         const response = await fetch(sheetURL);
         const data = await response.text();
-        const rows = data.split("\n").slice(1);
+        const rows = data.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/gmi).join('').split('\n').slice(1);
 
         const rojoDiv = document.getElementById("rojo");
         const amarilloDiv = document.getElementById("amarillo");
