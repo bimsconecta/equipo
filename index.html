@@ -79,6 +79,22 @@
 <script>
     const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpBlXxFSvypCMcH8ZyPe7Fead_RWveQTbuFg8lB4kKiJDSulg5EwAZfp6ERU0wjbqg-cj15oHQYOy-/pub?output=csv";
 
+    function mejorarTexto(original) {
+        let texto = original.toLowerCase();
+
+        texto = texto.replace(/sergio/g, "Sergio debe ");
+        texto = texto.replace(/checa|checar|revisa|revisar/g, "revisar");
+        texto = texto.replace(/porfa|por favor/g, "");
+        texto = texto.replace(/falla/g, "la falla");
+        texto = texto.replace(/magdalena/g, "Magdalena");
+        texto = texto.replace(/camilo/g, "Camilo");
+        texto = texto.replace(/ya qued[oó]/g, "Ha sido solucionada la falla de");
+        texto = texto.replace(/rapido/g, "a la brevedad");
+
+        texto = texto.charAt(0).toUpperCase() + texto.slice(1);
+        return texto.trim();
+    }
+
     async function cargarDatos() {
         const response = await fetch(sheetURL);
         const data = await response.text();
@@ -99,7 +115,7 @@
         rows.forEach(row => {
             const cols = row.split(",");
             const fecha = new Date(cols[0]);
-            const mensaje = cols[1];
+            let mensaje = cols[1];
             const urgencia = cols[2].trim();
             const estado = cols[3].trim();
 
@@ -107,6 +123,8 @@
                 const diffDays = (hoy - fecha) / (1000 * 60 * 60 * 24);
                 if (diffDays > 2) return;
             }
+
+            mensaje = mejorarTexto(mensaje);
 
             let tareaHTML = `<div class="tarea">${mensaje}</div>`;
 
