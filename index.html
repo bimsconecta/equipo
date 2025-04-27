@@ -1,125 +1,74 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="refresh" content="30">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bims Conecta - Tablero de Pendientes</title>
-    <style>
-        body {
-            background-color: #0b0c10;
-            color: #fff;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
-        img.logo {
-            width: 200px;
-            margin-top: 20px;
-        }
-        h1 {
-            margin: 10px 0;
-            font-size: 2em;
-            color: #66fcf1;
-        }
-        .container {
-            display: flex;
-            justify-content: space-around;
-            flex-wrap: wrap;
-            margin: 20px;
-        }
-        .column {
-            width: 22%;
-            background-color: #1f2833;
-            padding: 10px;
-            border-radius: 8px;
-            min-height: 400px;
-        }
-        .column h2 {
-            font-size: 1.5em;
-            margin-bottom: 10px;
-        }
-        .rojo { color: #ff3b3f; }
-        .amarillo { color: #f5c518; }
-        .verde { color: #28a745; }
-        .azul { color: #17a2b8; }
-        .tarea {
-            background-color: #0b0c10;
-            margin: 8px 0;
-            padding: 8px;
-            border: 1px solid #333;
-            border-radius: 4px;
-            font-size: 1em;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Bims Conecta</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
+    h1 { text-align: center; }
+    .stats { display: flex; justify-content: space-around; margin-bottom: 20px; }
+    .stat { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
+    .tasks { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .task { background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 200px; position: relative; }
+    .rojo { border-left: 5px solid red; }
+    .naranja { border-left: 5px solid orange; }
+    .verde { border-left: 5px solid green; }
+    .azul { border-left: 5px solid blue; }
+    .solucionado { position: absolute; top: 5px; right: 5px; font-size: 12px; color: green; font-weight: bold; }
+    .alerta { color: red; font-weight: bold; }
+  </style>
 </head>
 <body>
-    <img src="https://i.ibb.co/6WfFjW9/FONDO-NEGRO.png" alt="Bims Conecta Logo" class="logo">
-    <h1>Tablero de Pendientes</h1>
-    <div class="container">
-        <div class="column">
-            <h2 class="rojo">🔴 Urgente</h2>
-            <div id="rojo"></div>
-        </div>
-        <div class="column">
-            <h2 class="amarillo">🟡 Importante</h2>
-            <div id="amarillo"></div>
-        </div>
-        <div class="column">
-            <h2 class="verde">🟢 Pendiente</h2>
-            <div id="verde"></div>
-        </div>
-        <div class="column">
-            <h2 class="azul">🔵 Informativo</h2>
-            <div id="azul"></div>
-        </div>
-    </div>
+  <h1>Dashboard Bims Conecta</h1>
+  <div class="stats">
+    <div class="stat">Total Tickets: <span id="total"></span></div>
+    <div class="stat">Verde: <span id="verde"></span></div>
+    <div class="stat">Naranja: <span id="naranja"></span></div>
+    <div class="stat">Rojo: <span id="rojo"></span></div>
+    <div class="stat">Azul: <span id="azul"></span></div>
+  </div>
+  <div class="tasks" id="tasks"></div>
 
-<script>
-    const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpBlXxFSvypCMcH8ZyPe7Fead_RWveQTbuFg8lB4kKiJDSulg5EwAZfp6ERU0wjbqg-cj15oHQYOy-/pub?output=csv";
-
-    async function cargarDatos() {
-        const response = await fetch(sheetURL);
-        const data = await response.text();
-        const rows = data.split("\n").slice(1);
-
-        const rojoDiv = document.getElementById("rojo");
-        const amarilloDiv = document.getElementById("amarillo");
-        const verdeDiv = document.getElementById("verde");
-        const azulDiv = document.getElementById("azul");
-
-        rojoDiv.innerHTML = "";
-        amarilloDiv.innerHTML = "";
-        verdeDiv.innerHTML = "";
-        azulDiv.innerHTML = "";
-
-        const hoy = new Date();
+  <script>
+    fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vQIlNiAdQkltUVK7Sf9ohFkhx-zCBb-7aLK50MVwF1WAhaxLjXK6Yg0xpKl-p8j8VHs6fMTHRbvSvWu/pub?output=csv')
+      .then(response => response.text())
+      .then(data => {
+        const rows = data.split('\n').slice(1);
+        const container = document.getElementById('tasks');
+        let total = 0, verde = 0, naranja = 0, rojo = 0, azul = 0;
 
         rows.forEach(row => {
-            const cols = row.split(",");
-            const fecha = new Date(cols[0]);
-            const mensaje = cols[1];
-            const urgencia = cols[2].trim();
-            const estado = cols[3].trim();
+          const cols = row.split(',');
+          if (cols.length < 9) return;
+          const [fecha, ticket, cliente, asunto, estado, ultima, mensaje, semaforo, horas] = cols;
 
-            if (estado === "Resuelto") {
-                const diffDays = (hoy - fecha) / (1000 * 60 * 60 * 24);
-                if (diffDays > 2) return;
-            }
+          const taskDiv = document.createElement('div');
+          taskDiv.classList.add('task', semaforo.toLowerCase());
+          taskDiv.innerHTML = `
+            <strong>${ticket}</strong> - ${cliente}<br>
+            <em>${asunto}</em><br>
+            Estado: ${estado}<br>
+            Horas: ${horas}h<br>
+            ${estado.toLowerCase() === 'solucionado' ? '<div class="solucionado">✔️</div>' : ''}
+            ${(horas > 72 && estado.toLowerCase() !== 'solucionado') ? '<div class="alerta">⚠️</div>' : ''}
+          `;
+          container.appendChild(taskDiv);
 
-            let tareaHTML = `<div class="tarea">${mensaje}</div>`;
-
-            if (urgencia === "Rojo") rojoDiv.innerHTML += tareaHTML;
-            else if (urgencia === "Amarillo") amarilloDiv.innerHTML += tareaHTML;
-            else if (urgencia === "Verde") verdeDiv.innerHTML += tareaHTML;
-            else azulDiv.innerHTML += tareaHTML;
+          total++;
+          if (semaforo === 'Verde') verde++;
+          if (semaforo === 'Naranja') naranja++;
+          if (semaforo === 'Rojo') rojo++;
+          if (semaforo === 'Azul') azul++;
         });
-    }
 
-    cargarDatos();
-    setInterval(cargarDatos, 30000);
-</script>
+        document.getElementById('total').textContent = total;
+        document.getElementById('verde').textContent = verde;
+        document.getElementById('naranja').textContent = naranja;
+        document.getElementById('rojo').textContent = rojo;
+        document.getElementById('azul').textContent = azul;
+      });
+  </script>
 </body>
 </html>
 
