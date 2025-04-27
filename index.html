@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard Bims Conecta</title>
+  <title>Dashboard Tickets Bims Conecta</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     body {
@@ -102,7 +102,48 @@
     .delete-btn:hover {
       color: #c0392b;
     }
-
+    .add-btn {
+      display: block;
+      margin: 0 auto 20px auto;
+      padding: 8px 16px;
+      background: #0a4b78;
+      color: #fff;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      left: 0; top: 0; width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    .modal-content {
+      background-color: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 12px;
+      width: 300px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .modal-content label {
+      font-size: 13px; font-weight: 600; color: #0a4b78; display: block; margin-top: 8px;
+    }
+    .modal-content input, .modal-content select, .modal-content textarea {
+      width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 8px; font-family: 'Inter', sans-serif;
+    }
+    .modal-content button {
+      width: 100%; background: #0a4b78; color: #fff; border: none; border-radius: 6px; padding: 10px; font-weight: 600;
+    }
     @media (max-width: 768px) {
       .board { flex-direction: column; }
       .column { max-height: none; }
@@ -110,7 +151,10 @@
   </style>
 </head>
 <body>
-  <h1>Dashboard Bims Conecta - Ultra Moderno</h1>
+  <h1>Dashboard Tickets Bims Conecta</h1>
+
+  <button class="add-btn" id="addTicketBtn">+ Agregar Ticket</button>
+
   <div class="board">
     <div class="column rojo">
       <div class="column-header">Rojo (<span id="rojo-count">0</span>)</div>
@@ -130,7 +174,41 @@
     </div>
   </div>
 
+  <!-- Modal Formulario -->
+  <div class="modal" id="ticketModal">
+    <div class="modal-content">
+      <span class="close" onclick="document.getElementById('ticketModal').style.display='none'">&times;</span>
+      <h3 style="margin-top:0; color:#0a4b78;">Nuevo Ticket</h3>
+      <label for="cliente">Cliente:</label>
+      <select id="cliente">
+        <option value="Bims Conecta">Bims Conecta</option>
+        <option value="Nuevo">Nuevo</option>
+        <option value="Otro">Otro</option>
+      </select>
+
+      <label for="asunto">Asunto:</label>
+      <select id="asunto">
+        <option value="Pendiente">Pendiente</option>
+        <option value="Instalación Nueva">Instalación Nueva</option>
+        <option value="Mantenimiento a infraestructura">Mantenimiento a infraestructura</option>
+        <option value="Otro">Otro</option>
+      </select>
+
+      <label for="mensaje">Mensaje:</label>
+      <textarea id="mensaje" placeholder="Detalles del ticket" rows="3" style="resize:none;"></textarea>
+
+      <label for="ubicacion">Ubicación:</label>
+      <input type="text" id="ubicacion" placeholder="Ej: Las Vigas, Ver.">
+
+      <button onclick="guardarTicket()" style="margin-top:10px;">Guardar Ticket</button>
+    </div>
+  </div>
+
   <script>
+    document.getElementById('addTicketBtn').onclick = function() {
+      document.getElementById('ticketModal').style.display = 'block';
+    };
+
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyC8BPaaQKUxmD2lhnH3Z-nRxl-8xbRXRIRWTNKXu9_pATW5hMRA6ExiRdZ6MX-tXTrkw/exec';
 
     function limpiarUbicacion(ubicacion) {
@@ -142,22 +220,16 @@
     }
 
     function eliminarTicket(ticketId) {
-      if (confirm(`¿Seguro que quieres eliminar el ticket ${ticketId}?`)) {
-        fetch(WEB_APP_URL, {
-          method: 'POST',
-          body: JSON.stringify({ ticket: ticketId }),
-          headers: { 'Content-Type': 'application/json' }
-        })
-        .then(res => res.text())
-        .then(response => {
-          console.log('Respuesta del servidor:', response);
-          alert('Servidor dice: ' + response);
-          actualizarDashboard(); // Recarga los datos
-        })
-        .catch(err => {
-          alert('Error al eliminar');
-          console.error('Error:', err);
-        });
+      if (confirm(¿Seguro que quieres eliminar el ticket ${ticketId}?)) {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            alert(response);
+            actualizarDashboard();
+          })
+          .withFailureHandler(function(error) {
+            alert('Error al eliminar: ' + error.message);
+          })
+          .eliminarTicketDesdeDashboard(ticketId);
       }
     }
 
@@ -186,13 +258,13 @@
             if (ultima.includes('-')) {
               const partes = ultima.split(' ')[0].split('-');
               if (partes.length === 3) {
-                fechaObj = new Date(`${partes[1]}/${partes[2]}/${partes[0]}`);
+                fechaObj = new Date(${partes[1]}/${partes[2]}/${partes[0]});
                 fechaValida = !isNaN(fechaObj);
               }
             } else if (ultima.includes('/')) {
               const partes = ultima.split(' ')[0].split('/');
               if (partes.length === 3) {
-                fechaObj = new Date(`${partes[1]}/${partes[0]}/${partes[2]}`);
+                fechaObj = new Date(${partes[1]}/${partes[0]}/${partes[2]});
                 fechaValida = !isNaN(fechaObj);
               }
             }
@@ -208,22 +280,22 @@
               const dia = ('0' + fechaObj.getDate()).slice(-2);
               const mes = ('0' + (fechaObj.getMonth() + 1)).slice(-2);
               const anio = fechaObj.getFullYear().toString().slice(-2);
-              fechaFormateada = `${dia}/${mes}/${anio}`;
+              fechaFormateada = ${dia}/${mes}/${anio};
             }
 
             const ubicacionLimpia = limpiarUbicacion(ubicacion);
-            const badgeClass = `badge-${semaforo.toLowerCase()}`;
+            const badgeClass = badge-${semaforo.toLowerCase()};
 
-            const ticketHTML = `
+            const ticketHTML = 
               <div class="ticket">
                 <div class="ticket-id">${ticket} - ${cliente} <span class="delete-btn" onclick="eliminarTicket('${ticket}')">🗑️</span></div>
                 <div class="asunto">${asunto}</div>
                 <div class="info"><span class="badge ${badgeClass}">${estado}</span> Horas: ${horas}h</div>
                 <div class="info">Ubicación: ${ubicacionLimpia}</div>
                 <div class="update">Actualizado: ${fechaFormateada}</div>
-              </div>`;
+              </div>;
 
-            const target = document.getElementById(`${semaforo.toLowerCase()}-tickets`);
+            const target = document.getElementById(${semaforo.toLowerCase()}-tickets);
             target.innerHTML += ticketHTML;
 
             if (semaforo === 'Rojo') rojoCount++;
@@ -239,9 +311,26 @@
         });
     }
 
+    function guardarTicket() {
+      const cliente = document.getElementById('cliente').value;
+      const asunto = document.getElementById('asunto').value;
+      const mensaje = document.getElementById('mensaje').value;
+      const ubicacion = document.getElementById('ubicacion').value;
+
+      google.script.run
+        .withSuccessHandler(function(response) {
+          alert(response);
+          document.getElementById('ticketModal').style.display = 'none';
+          actualizarDashboard();
+        })
+        .withFailureHandler(function(error) {
+          alert('Error al guardar: ' + error.message);
+        })
+        .agregarTicketManual(asunto, mensaje, ubicacion, cliente);
+    }
+
     actualizarDashboard();
     setInterval(actualizarDashboard, 60000);
   </script>
 </body>
 </html>
-
