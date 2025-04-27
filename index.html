@@ -4,70 +4,243 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Bims Conecta</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
-    h1 { text-align: center; }
-    .stats { display: flex; justify-content: space-around; margin-bottom: 20px; }
-    .stat { background: #fff; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); text-align: center; }
-    .tasks { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-    .task { background: #fff; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); width: 200px; position: relative; }
-    .rojo { border-left: 5px solid red; }
-    .naranja { border-left: 5px solid orange; }
-    .verde { border-left: 5px solid green; }
-    .azul { border-left: 5px solid blue; }
-    .solucionado { position: absolute; top: 5px; right: 5px; font-size: 12px; color: green; font-weight: bold; }
-    .alerta { color: red; font-weight: bold; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #f2f4f8;
+      margin: 0;
+      padding: 20px;
+      color: #2c3e50;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 700;
+      font-size: 28px;
+      color: #0a4b78;
+    }
+    .board {
+      display: flex;
+      gap: 15px;
+      overflow-x: auto;
+    }
+    .column {
+      background: #ffffff;
+      flex: 1;
+      min-width: 280px;
+      border-radius: 14px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      display: flex;
+      flex-direction: column;
+      max-height: 90vh;
+    }
+    .column-header {
+      padding: 14px;
+      font-weight: 600;
+      font-size: 16px;
+      text-align: center;
+      color: #fff;
+      border-top-left-radius: 14px;
+      border-top-right-radius: 14px;
+    }
+    .rojo .column-header { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    .naranja .column-header { background: linear-gradient(135deg, #f39c12, #d35400); }
+    .verde .column-header { background: linear-gradient(135deg, #27ae60, #1e8449); }
+    .azul .column-header { background: linear-gradient(135deg, #2980b9, #2471a3); }
+    .tickets {
+      padding: 12px;
+      overflow-y: auto;
+    }
+    .ticket {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .ticket:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+    }
+    .ticket .ticket-id {
+      font-weight: 600;
+      color: #34495e;
+    }
+    .ticket .asunto {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0a4b78;
+    }
+    .ticket .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      margin-right: 5px;
+    }
+    .badge-rojo { background: #e74c3c; }
+    .badge-naranja { background: #f39c12; }
+    .badge-verde { background: #27ae60; }
+    .badge-azul { background: #2980b9; }
+    .ticket .info { color: #666; font-size: 12px; }
+    .ticket .update { font-size: 11px; color: #aaa; text-align: right; }
+    .delete-btn {
+      cursor: pointer;
+      float: right;
+      font-size: 14px;
+      color: #e74c3c;
+      transition: color 0.2s;
+    }
+    .delete-btn:hover {
+      color: #c0392b;
+    }
+
+    @media (max-width: 768px) {
+      .board { flex-direction: column; }
+      .column { max-height: none; }
+    }
   </style>
 </head>
 <body>
-  <h1>Dashboard Bims Conecta</h1>
-  <div class="stats">
-    <div class="stat">Total Tickets: <span id="total"></span></div>
-    <div class="stat">Verde: <span id="verde"></span></div>
-    <div class="stat">Naranja: <span id="naranja"></span></div>
-    <div class="stat">Rojo: <span id="rojo"></span></div>
-    <div class="stat">Azul: <span id="azul"></span></div>
+  <h1>Dashboard Bims Conecta - Ultra Moderno</h1>
+  <div class="board">
+    <div class="column rojo">
+      <div class="column-header">Rojo (<span id="rojo-count">0</span>)</div>
+      <div class="tickets" id="rojo-tickets"></div>
+    </div>
+    <div class="column naranja">
+      <div class="column-header">Naranja (<span id="naranja-count">0</span>)</div>
+      <div class="tickets" id="naranja-tickets"></div>
+    </div>
+    <div class="column verde">
+      <div class="column-header">Verde (<span id="verde-count">0</span>)</div>
+      <div class="tickets" id="verde-tickets"></div>
+    </div>
+    <div class="column azul">
+      <div class="column-header">Azul (5 días) (<span id="azul-count">0</span>)</div>
+      <div class="tickets" id="azul-tickets"></div>
+    </div>
   </div>
-  <div class="tasks" id="tasks"></div>
 
   <script>
-    fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vQIlNiAdQkltUVK7Sf9ohFkhx-zCBb-7aLK50MVwF1WAhaxLjXK6Yg0xpKl-p8j8VHs6fMTHRbvSvWu/pub?output=csv')
-      .then(response => response.text())
-      .then(data => {
-        const rows = data.split('\n').slice(1);
-        const container = document.getElementById('tasks');
-        let total = 0, verde = 0, naranja = 0, rojo = 0, azul = 0;
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyC8BPaaQKUxmD2lhnH3Z-nRxl-8xbRXRIRWTNKXu9_pATW5hMRA6ExiRdZ6MX-tXTrkw/exec';
 
-        rows.forEach(row => {
-          const cols = row.split(',');
-          if (cols.length < 9) return;
-          const [fecha, ticket, cliente, asunto, estado, ultima, mensaje, semaforo, horas] = cols;
+    function limpiarUbicacion(ubicacion) {
+      ubicacion = ubicacion.replace(/\b(Calle|Callejón|Camino|Av\.?|Avenida)\b/gi, '').trim();
+      ubicacion = ubicacion.replace(/\d{5}/g, '').trim();
+      ubicacion = ubicacion.replace(/\b(Veracruz|Ver\.)\b/gi, '').trim();
+      ubicacion = ubicacion.replace(/\s{2,}/g, ' ');
+      return ubicacion;
+    }
 
-          const taskDiv = document.createElement('div');
-          taskDiv.classList.add('task', semaforo.toLowerCase());
-          taskDiv.innerHTML = `
-            <strong>${ticket}</strong> - ${cliente}<br>
-            <em>${asunto}</em><br>
-            Estado: ${estado}<br>
-            Horas: ${horas}h<br>
-            ${estado.toLowerCase() === 'solucionado' ? '<div class="solucionado">✔️</div>' : ''}
-            ${(horas > 72 && estado.toLowerCase() !== 'solucionado') ? '<div class="alerta">⚠️</div>' : ''}
-          `;
-          container.appendChild(taskDiv);
-
-          total++;
-          if (semaforo === 'Verde') verde++;
-          if (semaforo === 'Naranja') naranja++;
-          if (semaforo === 'Rojo') rojo++;
-          if (semaforo === 'Azul') azul++;
+    function eliminarTicket(ticketId) {
+      if (confirm(`¿Seguro que quieres eliminar el ticket ${ticketId}?`)) {
+        fetch(WEB_APP_URL, {
+          method: 'POST',
+          body: JSON.stringify({ ticket: ticketId }),
+          headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => res.text())
+        .then(response => {
+          console.log('Respuesta del servidor:', response);
+          alert('Servidor dice: ' + response);
+          actualizarDashboard(); // Recarga los datos
+        })
+        .catch(err => {
+          alert('Error al eliminar');
+          console.error('Error:', err);
         });
+      }
+    }
 
-        document.getElementById('total').textContent = total;
-        document.getElementById('verde').textContent = verde;
-        document.getElementById('naranja').textContent = naranja;
-        document.getElementById('rojo').textContent = rojo;
-        document.getElementById('azul').textContent = azul;
-      });
+    function actualizarDashboard() {
+      fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vQIlNiAdQkltUVK7Sf9ohFkhx-zCBb-7aLK50MVwF1WAhaxLjXK6Yg0xpKl-p8j8VHs6fMTHRbvSvWu/pub?output=csv')
+        .then(response => response.text())
+        .then(data => {
+          document.getElementById('rojo-tickets').innerHTML = '';
+          document.getElementById('naranja-tickets').innerHTML = '';
+          document.getElementById('verde-tickets').innerHTML = '';
+          document.getElementById('azul-tickets').innerHTML = '';
+
+          let rojoCount = 0, naranjaCount = 0, verdeCount = 0, azulCount = 0;
+
+          const lines = data.split('\n').slice(1);
+          const ahora = new Date();
+
+          lines.forEach(line => {
+            const cols = line.split(/,(?=(?:(?:[^\"]*\"){2})*[^\"]*$)/);
+            if (cols.length < 10) return;
+            const [fecha, ticket, cliente, asunto, estado, ultima, mensaje, semaforo, horas, ubicacion] = cols.map(c => c.replace(/^"|"$/g, '').trim());
+            if (!ticket) return;
+
+            let fechaObj, fechaValida = false;
+
+            if (ultima.includes('-')) {
+              const partes = ultima.split(' ')[0].split('-');
+              if (partes.length === 3) {
+                fechaObj = new Date(`${partes[1]}/${partes[2]}/${partes[0]}`);
+                fechaValida = !isNaN(fechaObj);
+              }
+            } else if (ultima.includes('/')) {
+              const partes = ultima.split(' ')[0].split('/');
+              if (partes.length === 3) {
+                fechaObj = new Date(`${partes[1]}/${partes[0]}/${partes[2]}`);
+                fechaValida = !isNaN(fechaObj);
+              }
+            }
+
+            if (semaforo === 'Azul') {
+              if (!fechaValida) return;
+              const diffHoras = Math.abs(ahora - fechaObj) / 36e5;
+              if (diffHoras > 240) return;
+            }
+
+            let fechaFormateada = '---';
+            if (fechaValida) {
+              const dia = ('0' + fechaObj.getDate()).slice(-2);
+              const mes = ('0' + (fechaObj.getMonth() + 1)).slice(-2);
+              const anio = fechaObj.getFullYear().toString().slice(-2);
+              fechaFormateada = `${dia}/${mes}/${anio}`;
+            }
+
+            const ubicacionLimpia = limpiarUbicacion(ubicacion);
+            const badgeClass = `badge-${semaforo.toLowerCase()}`;
+
+            const ticketHTML = `
+              <div class="ticket">
+                <div class="ticket-id">${ticket} - ${cliente} <span class="delete-btn" onclick="eliminarTicket('${ticket}')">🗑️</span></div>
+                <div class="asunto">${asunto}</div>
+                <div class="info"><span class="badge ${badgeClass}">${estado}</span> Horas: ${horas}h</div>
+                <div class="info">Ubicación: ${ubicacionLimpia}</div>
+                <div class="update">Actualizado: ${fechaFormateada}</div>
+              </div>`;
+
+            const target = document.getElementById(`${semaforo.toLowerCase()}-tickets`);
+            target.innerHTML += ticketHTML;
+
+            if (semaforo === 'Rojo') rojoCount++;
+            if (semaforo === 'Naranja') naranjaCount++;
+            if (semaforo === 'Verde') verdeCount++;
+            if (semaforo === 'Azul') azulCount++;
+          });
+
+          document.getElementById('rojo-count').textContent = rojoCount;
+          document.getElementById('naranja-count').textContent = naranjaCount;
+          document.getElementById('verde-count').textContent = verdeCount;
+          document.getElementById('azul-count').textContent = azulCount;
+        });
+    }
+
+    actualizarDashboard();
+    setInterval(actualizarDashboard, 60000);
   </script>
 </body>
 </html>
